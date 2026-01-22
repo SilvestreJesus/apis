@@ -1,6 +1,5 @@
 [
     {"tipo_operacion": "suma","valores":[1,2,3,4,5]},
-    {"tipo_operacion": "suma","valores":[10,-2,3,4,5]},
     {"tipo_operacion": "resta","valores":[100,50,-20,10,10]},
     {"tipo_operacion": "resta","valores":[50,20,-3,4,1]},
     {"tipo_operacion": "multiplicacion","valores":[2,4,6]},

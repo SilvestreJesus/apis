@@ -1,82 +1,85 @@
-from fastapi import FastAPI
-import json
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import List, Union
 import math
 
-app = FastAPI()
+app = FastAPI(title="API de Operaciones Matemáticas")
+
+
+class Valores(BaseModel):
+    valores: List[float]
+
+
+class RespuestaOperacion(BaseModel):
+    operacion: str
+    valores: List[float]
+    resultado: Union[float, List[float]]
+
+
 
 @app.get("/")
 def root():
-    return "API de Operaciones"
+    return {"API de Operaciones"}
 
-@app.get("/suma")
-def suma():
 
-    with open('.json', 'r') as file:
-        data = json.load(file)    
+@app.post("/suma", response_model=RespuestaOperacion)
+def suma(data: Valores):
+    return {
+        "operacion": "suma",
+        "valores": data.valores,
+        "resultado": sum(data.valores)
+    }
+
+
+@app.post("/resta", response_model=RespuestaOperacion)
+def resta(data: Valores):
+    resultado = data.valores[0]
+    for v in data.valores[1:]:
+        resultado -= v
+    return {
+        "operacion": "resta",
+        "valores": data.valores,
+        "resultado": resultado
+    }
+
+
+@app.post("/multiplicacion", response_model=RespuestaOperacion)
+def multiplicacion(data: Valores):
+    resultado = 1
+    for v in data.valores:
+        resultado *= v
+    return {
+        "operacion": "multiplicacion",
+        "valores": data.valores,
+        "resultado": resultado
+    }
+
+
+@app.post("/division", response_model=RespuestaOperacion)
+def division(data: Valores):
+    resultado = data.valores[0]
+    for v in data.valores[1:]:
+        if v == 0:
+            raise HTTPException(status_code=400, detail="No se puede dividir entre cero")
+        resultado /= v
+    return {
+        "operacion": "division",
+        "valores": data.valores,
+        "resultado": resultado
+    }
+
+
+
+@app.post("/raiz", response_model=RespuestaOperacion)
+def raiz_cuadrada(data: Valores):
     resultados = []
-    for operacion in data:
-        if operacion["tipo_operacion"] == "suma":
-            resultado = operacion["valores"][0]
-            for valor in operacion["valores"][1:]:
-                resultado += valor
-            resultados.append(f"Sumando valores: {operacion['valores']}, Resultado: {resultado}")
-    return resultados
+    for v in data.valores:
+        if v < 0:
+            raise HTTPException(status_code=400, detail="No se puede sacar raíz de números negativos")
+        resultados.append(math.sqrt(v))
 
-
-@app.get("/resta")
-def resta():
-
-    with open('.json', 'r') as file:
-        data = json.load(file)    
-    resultados = []
-    for operacion in data:
-        if operacion["tipo_operacion"] == "resta":
-            resultado = operacion["valores"][0]
-            for valor in operacion["valores"][1:]:
-                resultado -= valor
-            resultados.append(f"Restando valores: {operacion['valores']}, Resultado: {resultado}")
-    return resultados
-
-
-@app.get("/multiplicacion")
-def multiplicacion():
-
-    with open('.json', 'r') as file:
-        data = json.load(file)    
-    resultados = []
-    for operacion in data:
-        if operacion["tipo_operacion"] == "multiplicacion":
-            resultado = operacion["valores"][0]
-            for valor in operacion["valores"][1:]:
-                resultado *= valor
-            resultados.append(f"Multiplicando valores: {operacion['valores']}, Resultado: {resultado}")
-    return resultados
-
-
-@app.get("/division")
-def division():
-
-    with open('.json', 'r') as file:
-        data = json.load(file)    
-    resultados = []
-    for operacion in data:
-        if operacion["tipo_operacion"] == "division":
-            resultado = operacion["valores"][0]
-            for valor in operacion["valores"][1:]:
-                resultado /= valor
-            resultados.append(f"Dividiendo valores: {operacion['valores']}, Resultado: {resultado}")
-    return resultados
-
-@app.get("/raiz_cuadrada")
-def raiz_cuadrada():
-
-    with open('.json', 'r') as file:
-        data = json.load(file)    
-    resultados = []
-    for operacion in data:
-        if operacion["tipo_operacion"] == "raiz":
-            resultadosraizes = []
-            for valor in operacion["valores"]:
-                resultadosraizes.append(math.sqrt(valor))
-            resultados.append(f"Raiz cuadrada valores: {operacion['valores']}, Resultado: {resultadosraizes}")
-    return resultados
+    return {
+        "operacion": "raiz cuadrada",
+        "valores": data.valores,
+        "resultado": resultados
+    }
